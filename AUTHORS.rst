@@ -33,3 +33,4 @@ answer newbie questions, and generally made Taiga that much better:
 - Vlad Topala <topalavlad@gmail.com>
 - Wil Wade
 - Iago Last
+- Anton Perekopniy <specialagenthackeronetester@gmail.com>
