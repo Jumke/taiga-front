@@ -139,10 +139,7 @@ class KanbanController extends mixOf(taiga.Controller, taiga.PageMixin, taiga.Fi
                 @kanbanUserstoriesService.resetFolds()
 
     filtersReloadContent: () ->
-        @.loadUserstories().then (result) =>
-            if @scope.project.swimlanes && !result.length
-                @.foldedSwimlane[@scope.project.swimlanes[0].id] = false
-
+        @.loadUserstories().then () =>
             openArchived = _.difference(@kanbanUserstoriesService.archivedStatus,
                                         @kanbanUserstoriesService.statusHide)
             if openArchived.length
@@ -230,15 +227,12 @@ class KanbanController extends mixOf(taiga.Controller, taiga.PageMixin, taiga.Fi
                     askResponse.finish(false)
                     @confirm.notify("error")
 
-    showPlaceHolder: (statusId, swimlaneId) ->
-        firstStatus = @scope.usStatusList[0].id == statusId &&
+    showPlaceHolder: (statusId) ->
+        if @scope.usStatusList[0].id == statusId &&
           !@kanbanUserstoriesService.userstoriesRaw.length
+            return true
 
-        if swimlaneId
-            firstSwimlane = @scope.project.swimlanes[0].id == swimlaneId
-            return firstStatus && firstSwimlane
-
-        return firstStatus
+        return false
 
     toggleFold: (id) ->
         @kanbanUserstoriesService.toggleFold(id)
@@ -485,6 +479,26 @@ module.controller("KanbanController", KanbanController)
 #############################################################################
 KanbanDirective = ($repo, $rootscope) ->
     link = ($scope, $el, $attrs) ->
+        watchKanbanSize = () =>
+            columns = $el.find(".task-colum-name")
+            kanbanStyles = getComputedStyle($el[0])
+            columnMargin = Number(kanbanStyles.getPropertyValue('--kanban-column-margin')
+                .trim()
+                .replace('px', '')
+                .split(' ')[1])
+
+            resizeCb = (entries) =>
+                width = columns.toArray().reduce (acc, column) =>
+                    return acc + column.offsetWidth + columnMargin
+                , 0
+
+                document.body.style.setProperty('--kanban-width', (width - columnMargin) + 'px')
+
+            resizeObserver = new ResizeObserver(resizeCb)
+
+            columns.each (index, column) =>
+                resizeObserver.observe(column)
+
         board = initBoard()
         board.events (event, data) =>
             # the card is visible in the scroll viewport
@@ -513,6 +527,8 @@ KanbanDirective = ($repo, $rootscope) ->
             tableBody.on "scroll", (event) ->
                 scroll = -1 * event.currentTarget.scrollLeft
                 tableHeaderDom.css("transform", "translateX(#{scroll}px)")
+
+            watchKanbanSize()
 
         $scope.$on "$destroy", ->
             $el.off()
