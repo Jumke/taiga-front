@@ -145,3 +145,27 @@
         margin-right: .25rem;
     }
 }
+
+// Button Board
+// Used in kanban and taksboard headers
+// button.btn-board
+
+.btn-board {
+    @extend %button;
+    background-color: transparent;
+    color: $color-link-tertiary;
+    padding: .25rem;
+    & [svg-icon] {
+        fill: currentColor;
+    }
+    &:hover {
+        background-color: $color-gray300;
+        color: $color-link-primary;
+    }
+    &[variant='blocked'] {
+        &:hover {
+            background-color: rgba($color-link-red, .25);
+            color: $color-black900;
+        }
+    }
+}
